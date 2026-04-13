@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Industrial Safety Surveillance | ESP32 & LoRa</title>
+
+<style>
+    *{ margin:0; padding:0; box-sizing:border-box; font-family: "Segoe UI", Arial, sans-serif; }
+    body{ background:#f2f6fb; }
+    .navbar{ height:60px; background:#0b3c5d; color:#fff; display:flex; align-items:center; justify-content:space-between; padding:0 25px; }
+    .status{ color:#00ff88; font-weight:bold; }
+    .container{ display:flex; height:calc(100vh - 60px); }
+    
+    /* Sidebar Styling */
+    .sidebar{ width:230px; background:#1b1b1b; color:#fff; padding:20px; }
+    .sidebar h3{ color:#00ffcc; margin-bottom:15px; }
+    .sidebar ul{ list-style:none; }
+    .sidebar ul li a{ 
+        display: block; padding:12px; color: #fff; text-decoration: none; 
+        margin-bottom:8px; border-radius:6px; transition: 0.3s;
+    }
+    .sidebar ul li a:hover{ background:#2d2d2d; color: #00ffcc; }
+
+    .main{ flex:1; padding:20px; overflow-y:auto; }
+    .grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:20px; }
+    
+    /* Card Styling */
+    .card{ background:#fff; border-radius:12px; padding:18px; box-shadow:0 4px 10px rgba(0,0,0,0.08); position: relative; }
+    .card h4{ font-size:14px; color:#555; margin-bottom: 10px; }
+    .value{ font-size:28px; font-weight:700; color:#0b3c5d; }
+    .unit{ font-size:13px; margin-bottom: 10px; }
+
+    /* Link/Button inside Card */
+    .view-link {
+        display: inline-block;
+        font-size: 11px;
+        text-decoration: none;
+        color: #0b3c5d;
+        border: 1px solid #0b3c5d;
+        padding: 4px 8px;
+        border-radius: 4px;
+        transition: 0.3s;
+    }
+    .view-link:hover { background: #0b3c5d; color: #fff; }
+
+    .safe{ color:#1abc9c; font-weight:bold; }
+    .warning{ color:#f39c12; font-weight:bold; }
+    .danger{ color:#e74c3c; font-weight:bold; }
+    .footer{ text-align:center; margin-top:20px; font-size:13px; color: #888; }
+</style>
+</head>
+
+<body>
+
+<div class="navbar">
+    <h2>Industrial Safety Surveillance</h2>
+    <div class="status">ESP32 + LoRa : ONLINE</div>
+</div>
+
+<div class="container">
+    <div class="sidebar">
+        <h3>Navigation</h3>
+        <ul>
+            <li><a href="index.html">Dashboard</a></li>
+            <li><a href="sensors.html">Live Sensors</a></li>
+            <li><a href="alerts.html">Safety Alerts</a></li>
+            <li><a href="nodes.html">LoRa Nodes</a></li>
+            <li><a href="reports.html">Reports</a></li>
+            <li><a href="settings.html">Settings</a></li>
+        </ul>
+    </div>
+
+    <div class="main">
+        <div class="grid">
+            <div class="card">
+                <h4>Temperature</h4>
+                <div class="value" id="temp">--</div>
+                <div class="unit">°C | <span id="tempStatus" class="safe">Normal</span></div>
+                <a href="sensors.html" class="view-link">View Details</a>
+            </div>
+
+            <div class="card">
+                <h4>Gas Level</h4>
+                <div class="value" id="gas">--</div>
+                <div class="unit">PPM | <span id="gasStatus" class="safe">Safe</span></div>
+                <a href="sensors.html" class="view-link">View Details</a>
+            </div>
+
+            <div class="card">
+                <h4>Humidity</h4>
+                <div class="value" id="humidity">--</div>
+                <div class="unit">% RH</div>
+                <a href="sensors.html" class="view-link">View Details</a>
+            </div>
+
+            <div class="card">
+                <h4>Worker Safety</h4>
+                <div class="value" id="worker">SAFE</div>
+                <div class="unit"><span id="workerStatus" class="safe">No Risk</span></div>
+                <a href="alerts.html" class="view-link">Logs</a>
+            </div>
+        </div>
+
+        <div class="grid" style="margin-top:20px;">
+            <div class="card">
+                <h4>LoRa Signal</h4>
+                <div class="value" id="lora">--</div>
+                <div class="unit">dBm</div>
+                <a href="nodes.html" class="view-link">Signal Map</a>
+            </div>
+
+            <div class="card">
+                <h4>ESP32 Nodes</h4>
+                <div class="value" id="nodes">--</div>
+                <div class="unit">Connected</div>
+                <a href="nodes.html" class="view-link">Manage Nodes</a>
+            </div>
+
+            <div class="card">
+                <h4>Emergency Alerts</h4>
+                <div class="value" id="alerts">--</div>
+                <div class="unit"><span id="alertStatus" class="safe">None</span></div>
+                <a href="alerts.html" class="view-link">View Alerts</a>
+            </div>
+
+            <div class="card">
+                <h4>Power Status</h4>
+                <div class="value">ON</div>
+                <div class="unit"><span class="safe">Stable</span></div>
+            </div>
+        </div>
+
+        <div class="footer">
+            © 2026 | DC Tech Core Pvt. Ltd. | Industrial Safety System
+        </div>
+    </div>
+</div>
+
+<script>
+function updateSensors(){
+    // Random data simulation
+    let temp = Math.floor(Math.random()*15)+30;
+    let gas = Math.floor(Math.random()*400)+300;
+    let hum = Math.floor(Math.random()*30)+50;
+    let lora = Math.floor(Math.random()*20)-90;
+    let alerts = Math.floor(Math.random()*3);
+    let activeNodes = Math.floor(Math.random()*1)+1;
+
+    // Correctly updating elements by ID
+    document.getElementById("temp").innerText = temp;
+    document.getElementById("gas").innerText = gas;
+    document.getElementById("humidity").innerText = hum;
+    document.getElementById("lora").innerText = lora;
+    document.getElementById("nodes").innerText = activeNodes;
+    document.getElementById("alerts").innerText = alerts;
+
+    // Status logic
+    let gasStat = document.getElementById("gasStatus");
+    let workStat = document.getElementById("workerStatus");
+    let alrtStat = document.getElementById("alertStatus");
+
+    if(gas > 600){
+        gasStat.innerHTML="Danger"; gasStat.className="danger";
+        workStat.innerHTML="Risk"; workStat.className="danger";
+        alrtStat.innerHTML="Gas Leak"; alrtStat.className="danger";
+    } else {
+        gasStat.innerHTML="Safe"; gasStat.className="safe";
+        workStat.innerHTML="No Risk"; workStat.className="safe";
+        alrtStat.innerHTML="None"; alrtStat.className="safe";
+    }
+}
+
+// Initial call and 30s interval
+updateSensors();
+setInterval(updateSensors, 30000);
+</script>
+
+</body>
+</html>
